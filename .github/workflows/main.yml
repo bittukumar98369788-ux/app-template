@@ -20,12 +20,19 @@ jobs:
 
       - name: Create App and Build
         run: |
+          # नया ऐप फोल्डर बनाना
           cordova create myApp com.bittu.app "AppMaker"
           cd myApp
           cordova platform add android@10.1.2
-          # फाइल से सही URL उठाना
-          USER_URL=$(jq -r '.web_url' ../app-settings.json)
-          sed -i "s|src=\"index.html\"|src=\"$USER_URL\"|" config.xml
+          
+          # JSON से URL और Name निकालकर config में डालना
+          APP_NAME=$(jq -r '.app_name' ../app-settings.json)
+          WEB_URL=$(jq -r '.web_url' ../app-settings.json)
+          
+          sed -i "s|src=\"index.html\"|src=\"$WEB_URL\"|" config.xml
+          sed -i "s|<name>AppMaker</name>|<name>$APP_NAME</name>|" config.xml
+          
+          # APK बनाना
           cordova build android --debug
 
       - name: Upload APK
