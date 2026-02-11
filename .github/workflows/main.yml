@@ -16,9 +16,6 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v4
-
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -27,22 +24,20 @@ jobs:
       - name: Install Cordova
         run: npm install -g cordova
 
-      - name: Create and Build App
+      - name: Create App and Build
         run: |
-          # 1. Project Creation
           cordova create myApp com.bittu.app "AppMaker"
           cd myApp
-          cordova platform add android@10.1.2
+          cordova platform add android@12.0.0
           
-          # 2. JSON Data Extraction
-          APP_NAME=$(jq -r '.app_name' ../app-settings.json)
-          WEB_URL=$(jq -r '.web_url' ../app-settings.json)
+          # JSON से डेटा निकाल कर फालतू स्पेस हटाना
+          APP_NAME=$(jq -r '.app_name' ../app-settings.json | tr -d '\n\r')
+          WEB_URL=$(jq -r '.web_url' ../app-settings.json | tr -d '\n\r')
           
-          # 3. Injecting Data into Config
           sed -i "s|src=\"index.html\"|src=\"$WEB_URL\"|" config.xml
           sed -i "s|<name>AppMaker</name>|<name>$APP_NAME</name>|" config.xml
           
-          # 4. Final APK Generation
+          chmod +x platforms/android/gradlew
           cordova build android --debug
 
       - name: Upload APK
