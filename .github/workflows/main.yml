@@ -22,8 +22,8 @@ jobs:
         run: |
           cordova create myApp com.bittu.app "AppMaker"
           cd myApp
-          cordova platform add android
-          # यहाँ फाइल से URL उठाकर ऐप में सेट किया जा रहा है
+          cordova platform add android@10.1.2
+          # फाइल से सही URL उठाना
           USER_URL=$(jq -r '.web_url' ../app-settings.json)
           sed -i "s|src=\"index.html\"|src=\"$USER_URL\"|" config.xml
           cordova build android --debug
@@ -33,4 +33,3 @@ jobs:
         with:
           name: Generated-APK
           path: myApp/platforms/android/app/build/outputs/apk/debug/app-debug.apk
-          
