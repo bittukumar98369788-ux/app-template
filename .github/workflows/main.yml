@@ -15,26 +15,33 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Install Cordova
-        run: npm install -g cordova
+      - name: Install Cordova and JQ
+        run: npm install -g cordova && sudo apt-get install jq -y
 
       - name: Create App and Build
         run: |
-          # नया ऐप फोल्डर बनाना
+          # 1. नया ऐप बनाना
           cordova create myApp com.bittu.app "AppMaker"
           cd myApp
           cordova platform add android@10.1.2
           
-          # JSON से URL और Name निकालकर config में डालना
+          # 2. JSON फाइल से डेटा सही तरीके से निकालना
           APP_NAME=$(jq -r '.app_name' ../app-settings.json)
           WEB_URL=$(jq -r '.web_url' ../app-settings.json)
           
+          # 3. Config फाइल में डेटा सेट करना
           sed -i "s|src=\"index.html\"|src=\"$WEB_URL\"|" config.xml
           sed -i "s|<name>AppMaker</name>|<name>$APP_NAME</name>|" config.xml
           
-          # APK बनाना
+          # 4. APK बनाना
           cordova build android --debug
 
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Generated-APK
+          path: myApp/platforms/android/app/build/outputs/apk/debug/app-debug.apk
+          
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
