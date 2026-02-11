@@ -16,6 +16,12 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Accept Android Licenses
+        run: yes | sdkmanager --licenses || true
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -24,19 +30,19 @@ jobs:
       - name: Install Cordova
         run: npm install -g cordova
 
-      - name: Create App and Build
+      - name: Create and Build App
         run: |
           cordova create myApp com.bittu.app "AppMaker"
           cd myApp
-          cordova platform add android@12.0.0
+          cordova platform add android@10.1.2
           
-          # JSON से डेटा निकाल कर फालतू स्पेस हटाना
           APP_NAME=$(jq -r '.app_name' ../app-settings.json | tr -d '\n\r')
           WEB_URL=$(jq -r '.web_url' ../app-settings.json | tr -d '\n\r')
           
           sed -i "s|src=\"index.html\"|src=\"$WEB_URL\"|" config.xml
           sed -i "s|<name>AppMaker</name>|<name>$APP_NAME</name>|" config.xml
           
+          # बिल्ड शुरू करने से पहले परमिशन देना
           chmod +x platforms/android/gradlew
           cordova build android --debug
 
