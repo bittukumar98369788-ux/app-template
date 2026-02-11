@@ -10,11 +10,14 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Set up JDK 11
+      - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
-          java-version: '11'
+          java-version: '17'
           distribution: 'temurin'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -24,21 +27,22 @@ jobs:
       - name: Install Cordova
         run: npm install -g cordova
 
-      - name: Create App and Build
+      - name: Create and Build App
         run: |
-          # 1. नया प्रोजेक्ट बनाना
+          # 1. Project Creation
           cordova create myApp com.bittu.app "AppMaker"
           cd myApp
           cordova platform add android@10.1.2
           
-          # 2. JSON फाइल से डेटा निकाल कर Config में डालना
+          # 2. JSON Data Extraction
           APP_NAME=$(jq -r '.app_name' ../app-settings.json)
           WEB_URL=$(jq -r '.web_url' ../app-settings.json)
           
+          # 3. Injecting Data into Config
           sed -i "s|src=\"index.html\"|src=\"$WEB_URL\"|" config.xml
           sed -i "s|<name>AppMaker</name>|<name>$APP_NAME</name>|" config.xml
           
-          # 3. APK बनाना
+          # 4. Final APK Generation
           cordova build android --debug
 
       - name: Upload APK
