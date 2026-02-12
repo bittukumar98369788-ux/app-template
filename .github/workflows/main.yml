@@ -10,45 +10,41 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Set up JDK 17
+      - name: Setup Java
         uses: actions/setup-java@v4
         with:
-          java-version: '17'
+          java-version: '11'
           distribution: 'temurin'
 
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Accept Android Licenses
-        run: yes | sdkmanager --licenses || true
-
-      - name: Setup Node.js
+      - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '18'
 
-      - name: Install Cordova
-        run: npm install -g cordova
-
-      - name: Create and Build App
+      - name: Install Tools
         run: |
-          cordova create myApp com.bittu.app "AppMaker"
+          npm install -g cordova
+          sudo apt-get install -y jq
+
+      - name: Build Process
+        run: |
+          cordova create myApp com.bittu.app "App"
           cd myApp
           cordova platform add android@10.1.2
           
-          APP_NAME=$(jq -r '.app_name' ../app-settings.json | tr -d '\n\r')
-          WEB_URL=$(jq -r '.web_url' ../app-settings.json | tr -d '\n\r')
+          # डेटा को सुरक्षित तरीके से निकालना
+          NAME=$(jq -r '.app_name' ../app-settings.json | tr -d '\r\n')
+          URL=$(jq -r '.web_url' ../app-settings.json | tr -d '\r\n')
           
-          sed -i "s|src=\"index.html\"|src=\"$WEB_URL\"|" config.xml
-          sed -i "s|<name>AppMaker</name>|<name>$APP_NAME</name>|" config.xml
+          sed -i "s|<name>App</name>|<name>$NAME</name>|" config.xml
+          sed -i "s|src=\"index.html\"|src=\"$URL\"|" config.xml
           
-          # बिल्ड शुरू करने से पहले परमिशन देना
           chmod +x platforms/android/gradlew
           cordova build android --debug
 
-      - name: Upload APK
+      - name: Upload
         uses: actions/upload-artifact@v4
         with:
-          name: Generated-APK
+          name: My-APK
           path: myApp/platforms/android/app/build/outputs/apk/debug/app-debug.apk
           
